@@ -77,8 +77,8 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    alert('Login successful!' );
-                    // Redirect or store token
+                    localStorage.setItem('authToken', data.token);
+                    window.location.href = '/dashboard.html';
                 } else {
                     alert('Login failed: ' + data.message);
                 }

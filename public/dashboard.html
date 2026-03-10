@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Dashboard</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; display: flex; }
+        .sidebar { width: 200px; background: #333; color: #fff; height: 100vh; padding: 20px; }
+        .main-content { flex: 1; padding: 20px; background: #f4f4f4; }
+        .header { background: #fff; padding: 10px; border-bottom: 1px solid #ddd; }
+        .cards { display: flex; gap: 20px; margin-top: 20px; }
+        .card { background: #fff; padding: 20px; flex: 1; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Menu</h2>
+        <ul>
+            <li>Dashboard</li>
+            <li>Reports</li>
+            <li>Settings</li>
+        </ul>
+        <hr style="border-color: #555;">
+        <p style="margin-top: auto;" id="userEmail"></p>
+        <button onclick="logout()" style="width: 100%; padding: 10px; background: #dc3545; color: #fff; border: none; border-radius: 5px; cursor: pointer;">Logout</button>
+    </div>
+    <div class="main-content">
+        <div class="header">
+            <h1>Welcome, <span id="userName">User</span></h1>
+        </div>
+        <div class="cards">
+            <div class="card"><h3>Total Users</h3><p>1,234</p></div>
+            <div class="card"><h3>Revenue</h3><p>$5,678</p></div>
+            <div class="card"><h3>Growth</h3><p>+15%</p></div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is authenticated
+        window.addEventListener('load', function() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = '/'; // Redirect to login if no token
+                return;
+            }
+
+            // Decode JWT token to get user email
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                document.getElementById('userEmail').textContent = payload.email;
+                document.getElementById('userName').textContent = payload.email.split('@')[0];
+            } catch (error) {
+                console.error('Invalid token', error);
+                localStorage.removeItem('authToken');
+                window.location.href = '/';
+            }
+        });
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('authToken');
+            window.location.href = '/';
+        }
+    </script>
