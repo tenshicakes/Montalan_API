@@ -30,12 +30,17 @@
     <div class="card mt-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="mb-0">Users</h3>
-        <button class="btn btn-primary" onclick="addUser()">Add user</button>
+        <div>
+          <button class="btn btn-primary" onclick="addUser()">Add user</button>
+          <button class="btn btn-danger" onclick="toggleDeleteMode()">Delete users</button>
+          <button class="btn btn-danger" id="confirmDelete" style="display:none;" onclick="confirmDelete()">Confirm Delete</button>
+        </div>
       </div>
 
       <table class="table table-striped">
         <thead>
           <tr>
+            <th id="selectTh" style="display:none;">Select</th>
             <th>Name</th>
             <th>Email</th>
             <th>Actions</th>
@@ -47,6 +52,8 @@
 
     <script>
         window.addEventListener('load', loadUsers);
+
+        let deleteMode = false;
 
         function loadUsers() {
             const token = localStorage.getItem('authToken');
@@ -67,9 +74,11 @@
             const users = await res.json();
             const table = document.getElementById('usersTable');
             table.innerHTML = '';
+            document.getElementById('selectTh').style.display = deleteMode ? 'table-cell' : 'none';
             users.forEach(user => {
                 table.innerHTML += `
       <tr>
+        <td style="display: ${deleteMode ? 'table-cell' : 'none'}"><input type="checkbox" class="user-checkbox" value="${user.id}"></td>
         <td>${user.name || ''}</td>
         <td>${user.email}</td>
         <td>
@@ -79,6 +88,26 @@
       </tr>
     `;
             });
+        }
+
+        function toggleDeleteMode() {
+            deleteMode = !deleteMode;
+            document.getElementById('confirmDelete').style.display = deleteMode ? 'inline-block' : 'none';
+            fetchUsers();
+        }
+
+        async function confirmDelete() {
+            const selected = Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
+            if (selected.length === 0) {
+                alert('No users selected');
+                return;
+            }
+            if (!confirm(`Delete ${selected.length} users?`)) return;
+            for (const id of selected) {
+                await fetch(`/api/users/${id}`, { method: 'DELETE' });
+            }
+            deleteMode = false;
+            fetchUsers();
         }
 
         // ---- Admin Add User (bypass CAPTCHA) ----
