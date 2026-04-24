@@ -1,31 +1,40 @@
+// ---- Imports & config ----
 const express = require('express');
-const app = express();
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
+const session = require('express-session');
 
-// Middlewares
+// ---- App setup ----
+const app = express();
+
+// ---- Middleware ----
 app.use(cors());
 app.use(express.json()); // parse JSON body
+app.use(express.static(path.join(__dirname, 'public'))); // serve frontend assets
 
-// serve static frontend files from public/
-const path = require('path');
-app.use(express.static(path.join(__dirname, 'public')));
+//captcha
+app.use(session({
+  secret: 'my-secret-key',
+  resave: false,
+  saveUninitialized: true,
+}));
 
-// Routes
+// ---- API routes ----
 const authRoutes = require('./routes/AuthRoutes');
 app.use('/api', authRoutes);
 
-// default route – load login page
+// ---- Frontend page routes ----
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// route to serve register page
 app.get('/register', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'register.html'));
 });
 
 
-// Start server
+
+// ---- Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));   

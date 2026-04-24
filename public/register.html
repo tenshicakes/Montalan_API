@@ -55,6 +55,19 @@
                     >
                 </div>
 
+                <!-- ✅ CAPTCHA -->
+                <div class="mb-3">
+                    <label class="form-label">CAPTCHA</label>
+                    <p id="captchaQuestion" class="fw-bold"></p>
+                    <input 
+                        type="text" 
+                        id="captchaAnswer" 
+                        class="form-control"
+                        placeholder="Enter CAPTCHA answer"
+                        required
+                    >
+                </div>
+
                 <div class="d-grid mb-3">
                     <button type="submit" class="btn btn-primary">
                         Register
@@ -77,24 +90,46 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // ✅ Load CAPTCHA from backend
+        async function loadCaptcha() {
+            try {
+                const res = await fetch('/api/captcha', { credentials: 'include' });
+                const data = await res.json();
+                document.getElementById('captchaQuestion').innerText =
+                    "Solve: " + data.question;
+            } catch (err) {
+                console.error('Error loading CAPTCHA:', err);
+            }
+        }
+
+        // Load CAPTCHA on page load
+        loadCaptcha();
+
+        // ✅ Handle registration form submission
         document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const captchaAnswer = document.getElementById('captchaAnswer').value;
 
             try {
                 const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password })
+                    credentials: 'include', // 🔥 important for session
+                    body: JSON.stringify({ name, email, password, captchaAnswer })
                 });
+
                 const data = await response.json();
+
                 if (response.ok) {
                     alert('Registration successful! Please log in.');
                     window.location.href = '/';
                 } else {
                     alert('Registration failed: ' + data.message);
+                    loadCaptcha(); // reload CAPTCHA on failure
                 }
             } catch (error) {
                 alert('Error: ' + error.message);
